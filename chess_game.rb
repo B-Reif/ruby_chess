@@ -20,6 +20,7 @@ class ChessGame
       @players.rotate!
       @display.render(current_player.get_color)
     end
+    puts "The game is over! #{Board.opposite_color(current_player.get_color).capitalize} wins!"
   end
 
   def current_player
@@ -37,13 +38,8 @@ class ChessGame
   end
 
   def is_valid_destination?(pos)
-    p "In ChessGame, selected piece is #{@selected_piece.class}"
-    p "and its pos is #{@selected_piece.get_position}"
     return false unless pos
-    result = @board.is_valid_move?(@selected_piece, pos)
-    p "Is_valid_destination piece#{@selected_piece.class}"
-    p "and its pos is #{@selected_piece.get_position}"
-    result
+    @board.is_valid_move?(@selected_piece, pos)
   end
 
   def get_source
@@ -62,7 +58,7 @@ class ChessGame
   end
 
   def over?
-    false
+    @board.checkmate?(current_player.get_color)
   end
 end
 

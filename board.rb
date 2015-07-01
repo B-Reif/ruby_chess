@@ -37,6 +37,13 @@ class Board
     false
   end
 
+  def checkmate?(color)
+    return false unless in_check?(color)
+    result = true
+    pieces = get_pieces(color)
+    # For all of our pieces, ensure that no piece has a valid move
+    pieces.all? { |piece| piece.moves.none? {|move| is_valid_move?(piece,move)} }
+  end
 
   def initialize
     # if grid
@@ -104,31 +111,15 @@ class Board
 
   def is_valid_move?(piece, destination)
     return false unless piece.is_valid_move?(destination)
-    return true
-    # old_pos = piece.get_position.dup
-    # old_piece = piece.dup
-    # new_pos = destination.dup
-    # new_piece = self[new_pos].dup
-    #
-    # p "about to move piece"
-    # move_piece(piece, destination)
-    # p "moved piece"
-    # is_valid = in_check?(piece.get_color)
-    # self[old_pos] = old_piece
-    # self[new_pos] = new_piece
-    # p "after undoing the move we have: "
-    # Display.new(self).render(piece.get_color)
-    # p "Old piece position: #{old_piece.get_position}"
-    # p "New piece position: #{new_piece.get_position}"
-    # !is_valid
-    # dup_board = deep_dup
-    # dup_board.move_piece(piece, destination)
-    # !dup_board.in_check?(piece.get_color)
+    piece_to_move = piece.dup
+    target_pos = destination.dup
+    target_piece = self[target_pos].dup
+
+    move_piece(piece_to_move, target_pos)
+    is_valid = !in_check?(piece.get_color)
+    self[piece.get_position] = piece
+    self[target_pos] = target_piece
+    is_valid
   end
-  #
-  # def deep_dup
-  #   duped_grid = @grid.map { |row| row.map { |piece| piece.dup }}
-  #   Board.from_grid(duped_grid)
-  # end
 
 end

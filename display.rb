@@ -5,7 +5,7 @@ class Display
 
   def initialize(board)
     @board = board
-    @cursor = [0,0]
+    @cursor = [6,4] # king pawn
   end
 
   def update_cursor(direction)

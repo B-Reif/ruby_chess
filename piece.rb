@@ -92,6 +92,10 @@ class Piece
     raise "No piece type"
   end
 
+  def get_board
+    @board
+  end
+
   def is_valid_move?(pos)
     moves.include?(pos)
   end
