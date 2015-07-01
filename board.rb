@@ -46,11 +46,7 @@ class Board
   end
 
   def initialize
-    # if grid
-    #   @grid = grid
-    # else
     make_grid
-    # end
   end
 
   def make_grid
@@ -58,11 +54,8 @@ class Board
     indices = (0...8).to_a
     indices.product(indices).map { |pos| self[pos] = EmptySquare.new(nil, pos, self)}
     setup
+    @captured_pieces = Hash.new { |h,k| h[k] = [] }
   end
-
-  # def self.from_grid(grid)
-  #   self.new(grid)
-  # end
 
   def [](pos)
     @grid[pos[0]][pos[1]]
@@ -102,13 +95,24 @@ class Board
   end
 
   def move_piece(piece, destination)
+    move(piece, destination)
+  end
+
+  def move_piece!(piece, destination)
+    captured_piece = self[destination].dup
+    move(piece, destination)
+    @captured_pieces[captured_piece.get_color] << captured_piece if captured_piece.to_valid_piece
+  end
+
+  private
+  def move(piece, destination)
     source_pos = piece.get_position
     self[destination] = piece
     piece.set_position(destination)
     self[source_pos] = EmptySquare.new(nil, source_pos, self)
-    # Display.new(self).render(piece.get_color)
   end
 
+  public
   def is_valid_move?(piece, destination)
     return false unless piece.is_valid_move?(destination)
     piece_to_move = piece.dup
@@ -120,6 +124,11 @@ class Board
     self[piece.get_position] = piece
     self[target_pos] = target_piece
     is_valid
+  end
+
+  def get_captured_pieces(color)
+    raise "Invalid color" unless color == :black || color == :white
+    @captured_pieces[color]
   end
 
 end

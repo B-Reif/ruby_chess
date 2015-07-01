@@ -3,6 +3,11 @@ require 'colorize'
 
 class Display
 
+  BG_COLORS = [
+    :magenta,
+    :blue
+  ]
+
   def initialize(board)
     @board = board
     @cursor = [6,4] # king pawn
@@ -24,23 +29,32 @@ class Display
   def render(color)
     system("clear")
     piece_at_cursor = @board.piece_at(@cursor)
-    valid_moves = piece_at_cursor.moves
-
+    valid_moves = piece_at_cursor.moves.select{ |move| @board.is_valid_move?(piece_at_cursor,move)}
     display_grid = @board.get_icons
+    puts "    #{("A".."H").to_a.join("  ")} "
     display_grid.each_with_index do |row, i|
+      print " #{8 - i} "
       row.each_with_index do |icon, j|
         curr_pos = [i, j]
-
+        icon_string = " #{icon} "
         if curr_pos == @cursor
-          print icon.colorize(:red) + " "
+          print icon_string.on_green
         elsif valid_moves.include?(curr_pos)
-          print icon.colorize(:blue) + " "
+          print icon_string.on_yellow
         else
-          print icon + " "
+          print icon_string.colorize(:background => BG_COLORS[(i + j) % 2])
         end
+      end
+      print " #{8 - i} "
+      if i == 0
+        print " " + @board.get_captured_pieces(:white).map(&:get_icon).join(" ")
+      end
+      if i == 7
+        print " " + @board.get_captured_pieces(:black).map(&:get_icon).join(" ")
       end
       puts
     end
+    puts "    #{("A".."H").to_a.join("  ")} "
     puts "#{color.to_s.capitalize}'s turn!"
 
   end

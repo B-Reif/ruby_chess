@@ -16,9 +16,10 @@ class ChessGame
   def run
     until over?
       get_source
-      move_to_destination
-      @players.rotate!
-      @display.render(current_player.get_color)
+      if move_to_destination
+        @players.rotate!
+        @display.render(current_player.get_color)
+      end
     end
     puts "The game is over! #{Board.opposite_color(current_player.get_color).capitalize} wins!"
   end
@@ -28,13 +29,12 @@ class ChessGame
   end
 
   def move_to_destination
-    destination = nil
-    until is_valid_destination?(destination)
-      destination = current_player.get_destination(@display)
-    end
-    @board.move_piece(@selected_piece, destination)
+    destination = current_player.get_destination(@display)
+    return false unless is_valid_destination?(destination)
+    @board.move_piece!(@selected_piece, destination)
     @display.render(current_player.get_color)
     @selected_piece = nil
+    true
   end
 
   def is_valid_destination?(pos)

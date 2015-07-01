@@ -103,6 +103,10 @@ class Piece
   def dup
     Piece.new(@color, @position, @board)
   end
+
+  def to_valid_piece
+    self.class == EmptySquare ? nil : self
+  end
 end
 
 class Pawn < Piece
@@ -283,7 +287,7 @@ end
 class EmptySquare < Piece
   def initialize(color, position, board)
     super
-    @icon = "_"
+    @icon = " "
   end
 
   def moves
