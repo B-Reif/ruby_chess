@@ -315,7 +315,7 @@ end
 class King < Piece
   include Castleable
   include Steppable
-  
+
   DIFFS = [
     [1,0],
     [-1,0],
@@ -350,6 +350,11 @@ class King < Piece
     king = King.new(@color, @position, @board)
     king.set_moved(@moved)
     king
+  end
+
+  def set_position(position)
+    super
+    @moved = true
   end
 end
 

@@ -2,17 +2,30 @@ require 'byebug'
 require_relative 'board'
 require_relative 'display'
 require_relative 'human_player'
+require_relative 'computer_player'
 require 'io/console'
 
 class ChessGame
   attr_reader :board
 
-  def initialize(*players)
+  def initialize
+    prompt_user_mode
     @board = Board.new
     @display = Display.new(@board)
     @selected_piece
     @display.render(:white)
-    @players = [*players]
+    @players = []
+    case @mode
+    when 1
+      @players << HumanPlayer.new(:white)
+      @players << HumanPlayer.new(:black)
+    when 2
+      @players << HumanPlayer.new(:white)
+      @players << ComputerPlayer.new(:black, @board)
+    when 3
+      @players << ComputerPlayer.new(:white, @board)
+      @players << ComputerPlayer.new(:black, @board)
+    end
   end
 
   def run
@@ -24,6 +37,13 @@ class ChessGame
       end
     end
     puts "The game is over! #{Board.opposite_color(current_player.get_color).capitalize} wins!"
+  end
+
+  def prompt_user_mode
+    puts "What mode?"
+    puts "1. Human vs Human"
+    puts "2. Human vs Computer"
+    @mode = gets.chomp.to_i
   end
 
   def current_player
@@ -64,9 +84,10 @@ class ChessGame
   end
 end
 
-player1 = HumanPlayer.new(:white)
-player2 = HumanPlayer.new(:black)
-g = ChessGame.new(player1, player2)
+#player1 = HumanPlayer.new(:white)
+#player2 = HumanPlayer.new(:black)
+#player2 = ComputerPlayer.new(:black)
+g = ChessGame.new
 # g.board[[7, 2]] = EmptySquare.new(nil, nil, [7, 2])
 # g.board[[7, 3]] = EmptySquare.new(nil, nil, [7, 3])
 # g.board[[7, 1]] = EmptySquare.new(nil, nil, [7, 1])
