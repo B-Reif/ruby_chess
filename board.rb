@@ -14,14 +14,12 @@ class Board
   end
 
   def get_piece(color,piece_type)
-    target = nil
     @grid.flatten.each do |piece|
       if piece.is_a?(piece_type) && piece.get_color == color
-        target = piece
-        break
+        return piece
       end
     end
-    target
+    nil
   end
 
   def get_pieces(color)
@@ -30,9 +28,10 @@ class Board
 
   def in_check?(color)
     king = get_piece(color, King)
+    king_pos = king.get_position
     opposing_pieces = get_pieces(Board.opposite_color(color))
     opposing_pieces.each do |piece|
-      return true if piece.moves.include?(king.get_position)
+      return true if piece.moves.include?(king_pos)
     end
     false
   end
@@ -100,16 +99,29 @@ class Board
 
   def move_piece!(piece, destination)
     captured_piece = self[destination].dup
+    source_pos = piece.get_position
     move(piece, destination)
+    castle_if_necessary(source_pos, piece, destination)
     @captured_pieces[captured_piece.get_color] << captured_piece if captured_piece.to_valid_piece
   end
 
   private
   def move(piece, destination)
     source_pos = piece.get_position
-    self[destination] = piece
-    piece.set_position(destination)
     self[source_pos] = EmptySquare.new(nil, source_pos, self)
+    piece.set_position(destination)
+    self[destination] = piece
+  end
+
+  def castle_if_necessary(source_pos, piece, destination)
+    diff = destination[1] - source_pos[1]
+    return false unless piece.is_a?(King) && diff.abs == 2
+
+    left_square = self[[destination[0], destination[1]-2]].to_valid_piece
+    right_square = self[[destination[0], destination[1]+1]].to_valid_piece
+    rook = left_square || right_square
+    rook_destination = [destination[0], destination[1] + (diff > 0 ? -1 : +1)]
+    move_piece(rook,rook_destination)
   end
 
   public
@@ -126,9 +138,19 @@ class Board
     is_valid
   end
 
+  def positions_between(source, destination)
+    # ONLY WORKS FOR COLUMNS
+    result = []
+    start = [source[1], destination[1]].min
+    endpoint = [source[1],destination[1]].max
+    (start+1...endpoint).each do |col|
+      result << [source[0], col]
+    end
+    return result
+  end
+
   def get_captured_pieces(color)
     raise "Invalid color" unless color == :black || color == :white
     @captured_pieces[color]
   end
-
 end

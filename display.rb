@@ -46,10 +46,12 @@ class Display
         end
       end
       print " #{8 - i} "
-      if i == 0
+      case i
+      when 0
         print " " + @board.get_captured_pieces(:white).map(&:get_icon).join(" ")
-      end
-      if i == 7
+      when 4
+        print "Check!" if @board.in_check?(color)
+      when 7
         print " " + @board.get_captured_pieces(:black).map(&:get_icon).join(" ")
       end
       puts

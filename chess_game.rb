@@ -1,9 +1,11 @@
+require 'byebug'
 require_relative 'board'
 require_relative 'display'
 require_relative 'human_player'
 require 'io/console'
 
 class ChessGame
+  attr_reader :board
 
   def initialize(*players)
     @board = Board.new
@@ -65,4 +67,14 @@ end
 player1 = HumanPlayer.new(:white)
 player2 = HumanPlayer.new(:black)
 g = ChessGame.new(player1, player2)
+g.board[[7, 2]] = EmptySquare.new(nil, nil, [7, 2])
+g.board[[7, 3]] = EmptySquare.new(nil, nil, [7, 3])
+g.board[[7, 1]] = EmptySquare.new(nil, nil, [7, 1])
+g.board[[7, 5]] = EmptySquare.new(nil, nil, [7, 5])
+g.board[[7, 6]] = EmptySquare.new(nil, nil, [7, 6])
+g.board[[0, 2]] = EmptySquare.new(nil, nil, [0, 2])
+g.board[[0, 3]] = EmptySquare.new(nil, nil, [0, 3])
+g.board[[0, 1]] = EmptySquare.new(nil, nil, [0, 1])
+g.board[[0, 5]] = EmptySquare.new(nil, nil, [0, 5])
+g.board[[0, 6]] = EmptySquare.new(nil, nil, [0, 6])
 g.run

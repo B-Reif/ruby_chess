@@ -64,7 +64,42 @@ module Pawnable
   end
 end
 
+module Castleable
+  def extra_moves(board)
+    moves = []
+
+    if can_castle?(board, @color, :kingside)
+      moves << (@color == :black ? [0, 6] : [7, 6])
+    end
+
+    if can_castle?(board, @color, :queenside)
+      moves << (@color == :black ? [0, 2] : [7, 2])
+    end
+
+    moves
+  end
+
+  def can_castle?(board, color, side)
+    king = board.get_piece(color, King)
+    rook_pos = []
+    rook_pos << (color == :white ? 7 : 0)
+    rook_pos << (side == :kingside ? 7 : 0)
+    rook = board[rook_pos]
+
+    squares_to_check = board.positions_between(rook_pos,king.get_position)
+    are_empty = squares_to_check.none? { |pos| board[pos].to_valid_piece }
+    opponent_pieces = board.get_pieces(Board.opposite_color(color)).reject { |piece| piece.is_a?(King)}
+    valid_moves_for_opponent = opponent_pieces.map { |piece| piece.moves }.flatten
+    are_safe = (squares_to_check & valid_moves_for_opponent).empty?
+
+    return false if king.moved? || !rook.is_a?(Rook) || rook.moved?
+    are_empty && are_safe
+  end
+end
+
 class Piece
+  attr_reader :color
+
   def initialize(color,position,board)
     @color = color
     @position = position
@@ -78,6 +113,10 @@ class Piece
 
   def get_color
     @color
+  end
+
+  def inspect
+    "#{color} #{self.class}"
   end
 
   def get_position
@@ -166,14 +205,30 @@ class Rook < Piece
   def initialize(color, position, board)
     super
     @icon = color == :black ? "\u2656" : "\u265C"
+    @moved = false
+  end
+
+  def set_moved(moved)
+    @moved = moved
   end
 
   def moves
     moves_from(@position, DIFFS, @board)
   end
 
+  def moved?
+    @moved
+  end
+
   def dup
-    Rook.new(@color, @position, @board)
+    rook = Rook.new(@color, @position, @board)
+    rook.set_moved(@moved)
+    rook
+  end
+
+  def set_position(pos)
+    super
+    @moved = true
   end
 end
 
@@ -258,7 +313,9 @@ class Queen < Piece
 end
 
 class King < Piece
+  include Castleable
   include Steppable
+  
   DIFFS = [
     [1,0],
     [-1,0],
@@ -273,14 +330,26 @@ class King < Piece
   def initialize(color, position, board)
     super
     @icon = color == :black ? "\u2654" : "\u265A"
+    @moved = false
   end
 
   def moves
-    moves_from(@position, DIFFS, @board)
+    moves = moves_from(@position, DIFFS, @board)
+    moves.concat(extra_moves(@board))
+  end
+
+  def set_moved(moved)
+    @moved = moved
+  end
+
+  def moved?
+    @moved
   end
 
   def dup
-    King.new(@color, @position, @board)
+    king = King.new(@color, @position, @board)
+    king.set_moved(@moved)
+    king
   end
 end
 
@@ -292,6 +361,10 @@ class EmptySquare < Piece
 
   def moves
     []
+  end
+
+  def inspect
+    "."
   end
 
   def dup
