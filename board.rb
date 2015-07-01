@@ -1,0 +1,134 @@
+require_relative 'piece'
+
+class Board
+  PIECES = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
+
+  def self.is_valid?(pos)
+    pos.all? { |coord| coord.between?(0, 7) }
+  end
+
+  def self.opposite_color(color)
+    return :white if color == :black
+    return :black if color == :white
+    return nil
+  end
+
+  def get_piece(color,piece_type)
+    target = nil
+    @grid.flatten.each do |piece|
+      if piece.is_a?(piece_type) && piece.get_color == color
+        target = piece
+        break
+      end
+    end
+    target
+  end
+
+  def get_pieces(color)
+    @grid.flatten.select { |piece| piece.get_color == color}
+  end
+
+  def in_check?(color)
+    king = get_piece(color, King)
+    opposing_pieces = get_pieces(Board.opposite_color(color))
+    opposing_pieces.each do |piece|
+      return true if piece.moves.include?(king.get_position)
+    end
+    false
+  end
+
+
+  def initialize
+    # if grid
+    #   @grid = grid
+    # else
+    make_grid
+    # end
+  end
+
+  def make_grid
+    @grid = Array.new(8) { Array.new(8) }
+    indices = (0...8).to_a
+    indices.product(indices).map { |pos| self[pos] = EmptySquare.new(nil, pos, self)}
+    setup
+  end
+
+  # def self.from_grid(grid)
+  #   self.new(grid)
+  # end
+
+  def [](pos)
+    @grid[pos[0]][pos[1]]
+  end
+
+  def []=(pos, piece)
+    @grid[pos[0]][pos[1]] = piece
+  end
+
+  def setup
+    setup_pieces(:black, 0)
+    setup_pawns(:black, 1)
+    setup_pawns(:white, 6)
+    setup_pieces(:white, 7)
+  end
+
+  def setup_pieces(color,row)
+    PIECES.each_with_index do | piece_type, i|
+      self[[row, i]] = piece_type.new(color,[row,i],self)
+    end
+  end
+
+  def setup_pawns(color,row)
+    8.times { |i| self[[row, i]] = Pawn.new(color,[row, i],self) }
+  end
+
+  def get_icons
+    @grid.map { |row| row.map(&:get_icon) }
+  end
+
+  def piece_at(pos)
+    self[pos]
+  end
+
+  def color_at(pos)
+    self[pos].get_color
+  end
+
+  def move_piece(piece, destination)
+    source_pos = piece.get_position
+    self[destination] = piece
+    piece.set_position(destination)
+    self[source_pos] = EmptySquare.new(nil, source_pos, self)
+    # Display.new(self).render(piece.get_color)
+  end
+
+  def is_valid_move?(piece, destination)
+    return false unless piece.is_valid_move?(destination)
+    return true
+    # old_pos = piece.get_position.dup
+    # old_piece = piece.dup
+    # new_pos = destination.dup
+    # new_piece = self[new_pos].dup
+    #
+    # p "about to move piece"
+    # move_piece(piece, destination)
+    # p "moved piece"
+    # is_valid = in_check?(piece.get_color)
+    # self[old_pos] = old_piece
+    # self[new_pos] = new_piece
+    # p "after undoing the move we have: "
+    # Display.new(self).render(piece.get_color)
+    # p "Old piece position: #{old_piece.get_position}"
+    # p "New piece position: #{new_piece.get_position}"
+    # !is_valid
+    # dup_board = deep_dup
+    # dup_board.move_piece(piece, destination)
+    # !dup_board.in_check?(piece.get_color)
+  end
+  #
+  # def deep_dup
+  #   duped_grid = @grid.map { |row| row.map { |piece| piece.dup }}
+  #   Board.from_grid(duped_grid)
+  # end
+
+end
