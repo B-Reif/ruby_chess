@@ -13,6 +13,11 @@ class Board
     return nil
   end
 
+  def update_pawns(color)
+    pawns = get_pieces(color).select { |piece| piece.is_a?(Pawn) }
+    pawns.each { |pawn| pawn.set_double_moved(false) }
+  end
+
   def get_piece(color,piece_type)
     @grid.flatten.each do |piece|
       if piece.is_a?(piece_type) && piece.get_color == color
@@ -106,6 +111,7 @@ class Board
   def move_piece!(piece, destination)
     captured_piece = self[destination].dup
     source_pos = piece.get_position
+    en_passant_if_necessary(source_pos, piece, destination)
     move(piece, destination)
     castle_if_necessary(source_pos, piece, destination)
     @captured_pieces[captured_piece.get_color] << captured_piece if captured_piece.to_valid_piece
@@ -168,4 +174,18 @@ class Board
     rook_destination = [destination[0], destination[1] + (diff > 0 ? -1 : +1)]
     move_piece(rook,rook_destination)
   end
+
+  def en_passant_if_necessary(source_pos, piece, destination)
+    diff = [
+      destination[0] - source_pos[0],
+      destination[1] - source_pos[1]
+    ]
+    return false unless piece.is_a?(Pawn) && !self[destination].to_valid_piece
+    return false unless diff.all? { |el| el.abs == 1 }
+    enemy_pawn_pos = [source_pos[0], destination[1]]
+    enemy_pawn = self[enemy_pawn_pos].dup
+    self[enemy_pawn_pos] = EmptySquare.new(nil, source_pos, self)
+    @captured_pieces[Board.opposite_color(piece.get_color)] << enemy_pawn
+  end
+
 end

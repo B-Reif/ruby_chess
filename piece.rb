@@ -97,6 +97,29 @@ module Castleable
   end
 end
 
+module Passantable
+  def extra_moves(board)
+    moves = []
+    curr_pos = get_position
+    left = [curr_pos[0], curr_pos[1] - 1]
+    right = [curr_pos[0], curr_pos[1] + 1]
+    en_passant_left = @color == :white ? [curr_pos[0] - 1, curr_pos[1] - 1] : [curr_pos[0] + 1, curr_pos[1] - 1]
+    en_passant_right = @color == :white ? [curr_pos[0] - 1, curr_pos[1] + 1] : [curr_pos[0] + 1, curr_pos[1] + 1]
+    moves << en_passant_left if can_en_passant?(board, left, @color)
+    moves << en_passant_right if can_en_passant?(board, right, @color)
+    moves
+  end
+
+  def can_en_passant?(board, pos, color)
+    return false unless Board.is_valid?(pos)
+    return false unless @board.color_at(pos) == Board.opposite_color(color)
+    enemy_pawn = @board.piece_at(pos)
+    return false unless enemy_pawn.is_a?(Pawn)
+    enemy_pawn.double_moved?
+  end
+
+end
+
 class Piece
   attr_reader :color
 
@@ -150,6 +173,7 @@ end
 
 class Pawn < Piece
   include Pawnable
+  include Passantable
 
   def initialize(color, position, board)
     super
@@ -176,20 +200,33 @@ class Pawn < Piece
     @moved = moved
   end
 
+  def set_double_moved(moved)
+    @double_moved = moved
+  end
+
   def dup
     pawn = Pawn.new(@color, @position, @board)
     pawn.set_moved(@moved)
+    pawn.set_double_moved(@double_moved)
     pawn
   end
 
   def moves
-    moves_from(@position, @diffs, @board, @moved)
+    moves_from(@position, @diffs, @board, @moved) + extra_moves(@board)
   end
 
   def set_position(pos)
+    old_pos = get_position
     super
     @moved = true
+    @double_moved = (old_pos[0] - pos[0]).abs == 2
   end
+
+  def double_moved?
+    @double_moved
+  end
+
+
 end
 
 class Rook < Piece
@@ -334,8 +371,7 @@ class King < Piece
   end
 
   def moves
-    moves = moves_from(@position, DIFFS, @board)
-    moves.concat(extra_moves(@board))
+    moves_from(@position, DIFFS, @board) + extra_moves(@board)
   end
 
   def set_moved(moved)

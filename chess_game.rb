@@ -30,6 +30,7 @@ class ChessGame
 
   def run
     until over?
+      prepare_board
       get_source
       if move_to_destination
         @players.rotate!
@@ -41,6 +42,10 @@ class ChessGame
     else
       puts "Checkmate! #{Board.opposite_color(current_player.get_color).capitalize} wins!"
     end
+  end
+
+  def prepare_board
+    @board.update_pawns(current_player.get_color)
   end
 
   def prompt_user_mode
