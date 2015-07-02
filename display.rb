@@ -26,6 +26,16 @@ class Display
     [0, [coord, 7].min].max
   end
 
+  def print_board_status(color)
+    if @board.checkmate?(color)
+      print "Checkmate!"
+    elsif @board.stalemate?(color)
+      print "Stalemate!"
+    elsif @board.in_check?(color)
+      print "Check!"
+    end
+  end
+
   def render(color)
     system("clear")
     piece_at_cursor = @board.piece_at(@cursor)
@@ -50,7 +60,7 @@ class Display
       when 0
         print " " + @board.get_captured_pieces(:white).map(&:get_icon).join(" ")
       when 4
-        print "Check!" if @board.in_check?(color)
+        print_board_status(color)
       when 7
         print " " + @board.get_captured_pieces(:black).map(&:get_icon).join(" ")
       end

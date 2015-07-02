@@ -5,6 +5,12 @@ class HumanPlayer
     "s" => [1,0],
     "d" => [0,1]
   }
+  PROMOTIONS = {
+    "q" => Queen,
+    "k" => Knight,
+    "b" => Bishop,
+    "r" => Rook
+  }
   def initialize(color)
     @color = color
   end
@@ -19,6 +25,17 @@ class HumanPlayer
 
   def get_destination(display)
     user_input(display)
+  end
+
+  def get_promotion
+    puts "Type {Q, R, B, K} to select the promotion."
+    while true
+      c = $stdin.getch
+      if PROMOTIONS.has_key?(c)
+        return PROMOTIONS[c]
+      end
+      exit if c == "\u0003"
+    end
   end
 
   def user_input(display)

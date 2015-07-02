@@ -38,7 +38,13 @@ class Board
 
   def checkmate?(color)
     return false unless in_check?(color)
-    result = true
+    pieces = get_pieces(color)
+    # For all of our pieces, ensure that no piece has a valid move
+    pieces.all? { |piece| piece.moves.none? {|move| is_valid_move?(piece,move)} }
+  end
+
+  def stalemate?(color)
+    return false if in_check?(color)
     pieces = get_pieces(color)
     # For all of our pieces, ensure that no piece has a valid move
     pieces.all? { |piece| piece.moves.none? {|move| is_valid_move?(piece,move)} }
@@ -105,26 +111,16 @@ class Board
     @captured_pieces[captured_piece.get_color] << captured_piece if captured_piece.to_valid_piece
   end
 
-  private
-  def move(piece, destination)
-    source_pos = piece.get_position
-    self[source_pos] = EmptySquare.new(nil, source_pos, self)
-    piece.set_position(destination)
-    self[destination] = piece
+  def promote?(piece)
+    row = (piece.get_color == :black ? 7 : 0)
+    piece.is_a?(Pawn) && piece.get_position[0] == row
   end
 
-  def castle_if_necessary(source_pos, piece, destination)
-    diff = destination[1] - source_pos[1]
-    return false unless piece.is_a?(King) && diff.abs == 2
-
-    left_square = self[[destination[0], destination[1]-2]].to_valid_piece
-    right_square = self[[destination[0], destination[1]+1]].to_valid_piece
-    rook = left_square || right_square
-    rook_destination = [destination[0], destination[1] + (diff > 0 ? -1 : +1)]
-    move_piece(rook,rook_destination)
+  def promote(piece, piece_type)
+    position = piece.get_position
+    self[position] = piece_type.new(piece.get_color, position, self)
   end
 
-  public
   def is_valid_move?(piece, destination)
     return false unless piece.is_valid_move?(destination)
     piece_to_move = piece.dup
@@ -152,5 +148,24 @@ class Board
   def get_captured_pieces(color)
     raise "Invalid color" unless color == :black || color == :white
     @captured_pieces[color]
+  end
+
+  private
+  def move(piece, destination)
+    source_pos = piece.get_position
+    self[source_pos] = EmptySquare.new(nil, source_pos, self)
+    piece.set_position(destination)
+    self[destination] = piece
+  end
+
+  def castle_if_necessary(source_pos, piece, destination)
+    diff = destination[1] - source_pos[1]
+    return false unless piece.is_a?(King) && diff.abs == 2
+
+    left_square = self[[destination[0], destination[1]-2]].to_valid_piece
+    right_square = self[[destination[0], destination[1]+1]].to_valid_piece
+    rook = left_square || right_square
+    rook_destination = [destination[0], destination[1] + (diff > 0 ? -1 : +1)]
+    move_piece(rook,rook_destination)
   end
 end

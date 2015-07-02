@@ -16,7 +16,7 @@ class ComputerPlayer
   def get_source(display)
     move_hash = {}
     @board.get_pieces(@color).each do |piece|
-      move_hash[piece] = piece.moves
+      move_hash[piece] = piece.moves.select { |move| @board.is_valid_move?(piece, move) }
     end
 
     capture_hash = Hash.new { |h,v| h[v] = []}
@@ -43,6 +43,10 @@ class ComputerPlayer
     end
 
     @selected_piece.get_position
+  end
+
+  def get_promotion
+    Queen
   end
 
   def random_move

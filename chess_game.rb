@@ -36,7 +36,11 @@ class ChessGame
         @display.render(current_player.get_color)
       end
     end
-    puts "The game is over! #{Board.opposite_color(current_player.get_color).capitalize} wins!"
+    if @board.stalemate?(current_player.get_color)
+      puts "Stalemate! #{Board.opposite_color(current_player.get_color).capitalize} wins!"
+    else
+      puts "Checkmate! #{Board.opposite_color(current_player.get_color).capitalize} wins!"
+    end
   end
 
   def prompt_user_mode
@@ -54,6 +58,10 @@ class ChessGame
     destination = current_player.get_destination(@display)
     return false unless is_valid_destination?(destination)
     @board.move_piece!(@selected_piece, destination)
+    if @board.promote?(@selected_piece)
+      piece_type = current_player.get_promotion
+      @board.promote(@selected_piece, piece_type)
+    end
     @display.render(current_player.get_color)
     @selected_piece = nil
     true
@@ -80,7 +88,7 @@ class ChessGame
   end
 
   def over?
-    @board.checkmate?(current_player.get_color)
+    @board.checkmate?(current_player.get_color) || @board.stalemate?(current_player.get_color)
   end
 end
 
